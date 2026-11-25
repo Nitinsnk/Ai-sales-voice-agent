@@ -2,51 +2,85 @@
 
 
 
-\## Business Problem
+\*\*Candidate:\*\* Nitin
 
-Sales teams lose leads when inbound calls go unanswered or are handled inconsistently. Qualifying prospects, answering product questions, and booking meetings take time that could go to closing deals.
-
-
-
-\## Solution
-
-NexaCloud AI is a prototype voice agent that handles a sales call end to end: it answers product questions from a knowledge base, captures and scores lead details (BANT: Budget, Authority, Need, Timeline), detects sentiment and objections, books non-conflicting appointments, and produces a call summary and follow-up email.
+\*\*Repository:\*\* https://github.com/Nitinsnk/Ai-sales-voice-agent
 
 
 
-\## Technical Implementation
+\## 1. Business Problem
 
-\- \*\*Voice:\*\* Browser Web Speech API for speech-to-text and text-to-speech; typed input as fallback.
 
-\- \*\*Retrieval (RAG):\*\* Hybrid retriever combining BM25 lexical scoring with TF-IDF character n-gram cosine similarity (scikit-learn, with a pure-Python fallback).
 
-\- \*\*Qualification:\*\* Entity extraction for name, company, role, team size, budget, and timeline; BANT score 0 to 100, labelled Hot, Warm, or Cold.
+Sales teams lose leads when inbound calls go unanswered or are handled inconsistently. Qualifying prospects, answering product questions, and booking meetings take time that could be spent closing deals.
+
+
+
+\## 2. Solution
+
+
+
+NexaCloud AI is a prototype voice sales agent that handles a call from start to finish. It answers product questions from a knowledge base, captures and scores lead details using BANT (Budget, Authority, Need, Timeline), detects sentiment and objections, books non-conflicting appointments, and produces a call summary with a follow-up email.
+
+
+
+\## 3. Technical Implementation
+
+
+
+\- \*\*Voice:\*\* Browser Web Speech API for speech-to-text and text-to-speech, with typed input as a fallback.
+
+\- \*\*Retrieval (RAG):\*\* A hybrid retriever combining BM25 lexical scoring with TF-IDF character n-gram cosine similarity, using scikit-learn with a pure-Python fallback.
+
+\- \*\*Qualification:\*\* Entity extraction for name, company, role, team size, budget, and timeline, with a BANT score from 0 to 100 labelled Hot, Warm, or Cold.
 
 \- \*\*Intelligence:\*\* Per-turn sentiment and objection detection.
 
-\- \*\*Memory and language:\*\* Session memory per call; language detection for en, hi, es, fr, de.
+\- \*\*Memory and language:\*\* Session memory for each call, with language detection for English, Hindi, Spanish, French, and German.
 
-\- \*\*CRM:\*\* SQLite database with leads, appointments (unique date-time constraint prevents double-booking), call summaries, and a webhook outbox.
+\- \*\*CRM:\*\* SQLite database storing leads, appointments (with a unique date and time constraint to prevent double-booking), call summaries, and a webhook outbox.
 
-\- \*\*Server:\*\* Python ThreadingHTTPServer with REST APIs and Server-Sent Events. Runs fully offline, with optional Gemini or OpenAI integration.
+\- \*\*Server:\*\* Python ThreadingHTTPServer with REST APIs and Server-Sent Events. It runs fully offline, with optional Gemini or OpenAI integration.
 
-\- \*\*Security:\*\* PII redaction in logs; secrets kept in environment variables, not in the repository.
-
-
-
-\## Scalability to 100,000 Users
-
-Move the stateless web tier behind a load balancer and run multiple instances. Replace SQLite with PostgreSQL, sessions with Redis, and the local retriever with a managed vector database. Put speech processing on a managed STT/TTS service, and queue webhook and CRM sync jobs. Details are in `docs/ARCHITECTURE.md`.
+\- \*\*Security:\*\* PII redaction in logs, and secrets kept in environment variables rather than in the repository.
 
 
 
-\## Commercial Feasibility
-
-Priced per booked meeting or per seat, the product reduces the cost of inbound qualification. Main costs are speech APIs, LLM tokens, hosting, and database. These should be estimated for specific volumes before any launch.
+\## 4. How to Run
 
 
 
-\## Limitations and Next Steps
+```
 
-The current build uses a rule-based offline brain by default. Next steps: connect a live LLM, add telephony (for example, Twilio) for real phone calls, add a production CRM connector, and add authentication.
+py app.py
+
+```
+
+
+
+Then open http://127.0.0.1:3000 in Chrome or Edge. Run `py -m unittest discover -s tests -v` for the tests and `py scripts/e2e\_demo.py` for the scripted demo.
+
+
+
+\## 5. Scalability to 100,000 Users
+
+
+
+Move the stateless web tier behind a load balancer and run several instances. Replace SQLite with PostgreSQL, store sessions in Redis, and use a managed vector database for retrieval. Speech processing can move to a managed STT/TTS service, and CRM sync and webhooks can run through a job queue. Full details are in `docs/ARCHITECTURE.md`.
+
+
+
+\## 6. Commercial Feasibility
+
+
+
+The product can be priced per booked meeting or per seat. The main running costs are speech APIs, LLM tokens, hosting, and the database. These should be estimated for specific call volumes before any launch.
+
+
+
+\## 7. Limitations and Next Steps
+
+
+
+The current build uses a rule-based offline engine by default. Next steps are to connect a live LLM, add telephony such as Twilio for real phone calls, build a production CRM connector, and add authentication.
 
