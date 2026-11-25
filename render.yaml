@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: nexacloud-ai-sales-voice-agent
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: HOST=0.0.0.0 python app.py
+    envVars:
+      - key: LLM_PROVIDER
+        value: auto
+      - key: PORT
+        value: "10000"

@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NexaCloud AI — Autonomous Sales Voice Agent</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="ambient-bg" aria-hidden="true">
+    <div class="aura aura-1"></div>
+    <div class="aura aura-2"></div>
+    <div class="aura aura-3"></div>
+  </div>
+
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-orb">
+          <div class="brand-orb-core"></div>
+        </div>
+        <div>
+          <div class="brand-title-row">
+            <h1>NexaCloud AI</h1>
+            <span class="badge badge-gold">Autonomous Voice Concierge</span>
+          </div>
+          <p class="subtitle">Real-time STT/TTS · Multilingual · Hybrid RAG · BANT Qualification · Automated CRM Sync</p>
+        </div>
+      </div>
+
+      <div class="topbar-actions">
+        <span id="providerBadge" class="badge badge-neutral">Loading brain...</span>
+        <select id="languageSelect" title="Preferred call language" class="select-pill">
+          <option value="en">English (en-US)</option>
+          <option value="hi">Hindi (hi-IN)</option>
+          <option value="es">Spanish (es-ES)</option>
+          <option value="fr">French (fr-FR)</option>
+          <option value="de">German (de-DE)</option>
+        </select>
+        <button id="btnConfig" class="btn btn-ghost">AI Settings</button>
+        <button id="btnNewCall" class="btn btn-primary">Start New Call</button>
+        <button id="btnEndCall" class="btn btn-danger" disabled>End &amp; Summarize</button>
+      </div>
+    </header>
+
+    <nav class="tabs-bar">
+      <div class="tabs">
+        <button class="tab active" data-tab="studio">Live Voice Studio</button>
+        <button class="tab" data-tab="crm">CRM &amp; Business Insights</button>
+        <button class="tab" data-tab="kb">RAG Knowledge Base</button>
+        <button class="tab" data-tab="arch">Architecture &amp; 100k Scale</button>
+      </div>
+    </nav>
+
+    <main>
+      <!-- TAB 1: LIVE VOICE STUDIO -->
+      <section id="tab-studio" class="tab-panel active">
+        <div class="studio-grid">
+          <!-- Left: Voice Controls & Simulator -->
+          <aside class="panel voice-panel">
+            <div class="panel-header">
+              <h2>Voice Console</h2>
+              <span id="callStatusChip" class="badge badge-neutral">Standby</span>
+            </div>
+
+            <div class="waveform-box">
+              <div class="voice-ring-header">
+                <span class="pulse-dot"></span>
+                <span id="voiceStateText" class="voice-state">Click "Start New Call" to begin</span>
+              </div>
+              <canvas id="waveformCanvas" width="300" height="84"></canvas>
+            </div>
+
+            <div class="voice-controls">
+              <button id="btnMic" class="btn btn-accent btn-lg" disabled>
+                <span id="micLabel">Hold / Toggle Mic (STT)</span>
+              </button>
+              <label class="toggle-row">
+                <input type="checkbox" id="chkTts" checked />
+                <span>Speak AI replies aloud (Web Speech TTS)</span>
+              </label>
+              <label class="toggle-row">
+                <input type="checkbox" id="chkContinuous" />
+                <span>Hands-free continuous listening + barge-in</span>
+              </label>
+            </div>
+
+            <div id="interimBox" class="interim-box hidden"></div>
+
+            <form id="textTurnForm" class="turn-form">
+              <textarea id="turnInput" rows="2" placeholder="Or type what the prospect says..." disabled></textarea>
+              <button type="submit" id="btnSendTurn" class="btn btn-primary" disabled>Send Turn</button>
+            </form>
+
+            <div class="scenarios-box">
+              <div class="scenarios-header">
+                <h3>1-Click Prospect Simulator</h3>
+                <span class="badge badge-neutral">Demo Ready</span>
+              </div>
+              <p class="hint">Walk through an end-to-end enterprise call without a mic:</p>
+              <div class="scenario-buttons">
+                <button class="btn btn-sm btn-ghost scenario-btn" data-scenario="enterprise">
+                  <span class="step-num">01</span> VP Intro + Pain Point (EN)
+                </button>
+                <button class="btn btn-sm btn-ghost scenario-btn" data-scenario="objection">
+                  <span class="step-num">02</span> SOC 2 Security &amp; Pricing Check
+                </button>
+                <button class="btn btn-sm btn-ghost scenario-btn" data-scenario="bant_book">
+                  <span class="step-num">03</span> Budget + Book Tomorrow 10 AM
+                </button>
+                <button class="btn btn-sm btn-ghost scenario-btn" data-scenario="hindi">
+                  <span class="step-num">04</span> Mid-Call Switch to Hindi
+                </button>
+              </div>
+            </div>
+          </aside>
+
+          <!-- Center: Live Transcript -->
+          <section class="panel transcript-panel">
+            <div class="panel-header">
+              <div>
+                <h2>Live Conversation</h2>
+                <span class="muted">Real-time streaming turns, sentiment tags &amp; RAG citations</span>
+              </div>
+              <span id="sessionIdBadge" class="mono pill-id">No active call</span>
+            </div>
+            <div id="transcriptList" class="transcript-list">
+              <div class="empty-state">
+                <div class="empty-orb"></div>
+                <strong>Ready for Live Voice Interaction</strong>
+                <p>Click <em>Start New Call</em> above to engage Aria via microphone STT/TTS or the 1-Click Simulator.</p>
+              </div>
+            </div>
+          </section>
+
+          <!-- Right: Live Co-Pilot Intelligence -->
+          <aside class="panel intel-panel">
+            <div class="panel-header">
+              <h2>Executive Co-Pilot</h2>
+              <span id="bantTierBadge" class="badge badge-neutral">Cold · 0/100</span>
+            </div>
+
+            <div class="bant-card">
+              <div class="bant-label-row">
+                <span>BANT Qualification Score</span>
+                <span class="muted">Live Scoring</span>
+              </div>
+              <div class="bant-bar-track">
+                <div id="bantBarFill" class="bant-bar-fill" style="width: 0%"></div>
+              </div>
+              <div class="bant-grid">
+                <div id="bantBudget" class="bant-item"><span>Budget</span><strong>Missing</strong></div>
+                <div id="bantAuthority" class="bant-item"><span>Authority</span><strong>Missing</strong></div>
+                <div id="bantNeed" class="bant-item"><span>Need</span><strong>Missing</strong></div>
+                <div id="bantTimeline" class="bant-item"><span>Timeline</span><strong>Missing</strong></div>
+              </div>
+            </div>
+
+            <div class="intel-section">
+              <h3>Contextual Memory</h3>
+              <dl id="memoryList" class="memory-dl">
+                <div><dt>Prospect</dt><dd>—</dd></div>
+                <div><dt>Company</dt><dd>—</dd></div>
+                <div><dt>Team Size</dt><dd>—</dd></div>
+                <div><dt>Language</dt><dd>English</dd></div>
+                <div><dt>Objections</dt><dd>None</dd></div>
+              </dl>
+            </div>
+
+            <div class="intel-section">
+              <h3>Sentiment Trajectory</h3>
+              <div id="sentimentTrack" class="sentiment-track">
+                <span class="muted">Waiting for first turn...</span>
+              </div>
+            </div>
+
+            <div class="intel-section">
+              <h3>RAG Grounded Chunks</h3>
+              <div id="ragHitsList" class="rag-list">
+                <span class="muted">No chunks retrieved yet.</span>
+              </div>
+            </div>
+
+            <div class="intel-section">
+              <h3>Calendar Slots &amp; Booking</h3>
+              <div id="bookingStatusBox" class="slots-list">
+                <span class="muted">Start a call to view live slots.</span>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- TAB 2: CRM & BUSINESS INSIGHTS -->
+      <section id="tab-crm" class="tab-panel">
+        <div id="kpiRow" class="kpi-grid"></div>
+        <div class="crm-grid">
+          <div class="panel">
+            <div class="panel-header"><h2>CRM Leads Pipeline (SQLite)</h2></div>
+            <div class="table-wrap">
+              <table id="leadsTable">
+                <thead>
+                  <tr><th>Prospect</th><th>Company</th><th>Lang</th><th>BANT</th><th>Status</th><th>Need / Budget</th></tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-header"><h2>Booked Appointments</h2></div>
+            <div id="appointmentsList" class="cards-stack"></div>
+          </div>
+        </div>
+
+        <div class="crm-grid">
+          <div class="panel">
+            <div class="panel-header"><h2>Call Summaries &amp; Auto-Drafted Follow-ups</h2></div>
+            <div id="summariesList" class="cards-stack"></div>
+          </div>
+          <div class="panel">
+            <div class="panel-header"><h2>Insights &amp; CRM Webhook Outbox</h2></div>
+            <div id="insightsDetails" class="insights-box"></div>
+            <h3 class="subhead">Recent HubSpot / Salesforce Webhook Payloads</h3>
+            <div id="webhookList" class="webhook-list"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 3: RAG KNOWLEDGE BASE -->
+      <section id="tab-kb" class="tab-panel">
+        <div class="kb-grid">
+          <div class="panel">
+            <div class="panel-header"><h2>Indexed Knowledge Chunks</h2></div>
+            <div id="kbList" class="cards-stack"></div>
+          </div>
+          <div class="panel">
+            <div class="panel-header"><h2>Add Live RAG Document</h2></div>
+            <p class="hint">Add a new policy, promo, or competitor battlecard at runtime and test it immediately in the Voice Studio.</p>
+            <form id="kbAddForm" class="stack-form">
+              <label>Title <input type="text" id="kbTitle" required placeholder="e.g., Q4 BFSI Compliance Promo" /></label>
+              <label>Category
+                <select id="kbCategory">
+                  <option value="offer">offer</option>
+                  <option value="pricing">pricing</option>
+                  <option value="security">security</option>
+                  <option value="integrations">integrations</option>
+                  <option value="battlecard">battlecard</option>
+                </select>
+              </label>
+              <label>Tags (comma-separated) <input type="text" id="kbTags" placeholder="discount, banking, promo, q4" /></label>
+              <label>Content <textarea id="kbContent" rows="5" required placeholder="Exact facts the AI voice agent should cite..."></textarea></label>
+              <button type="submit" class="btn btn-primary">Index into Hybrid RAG</button>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 4: SYSTEM ARCHITECTURE & 100K SCALE -->
+      <section id="tab-arch" class="tab-panel">
+        <div class="panel">
+          <div class="panel-header">
+            <h2>End-to-End System Architecture (Production &amp; 100,000-User Scale)</h2>
+            <span class="badge badge-gold">Sub-500ms Voice Pipeline</span>
+          </div>
+          <div class="arch-svg-wrap">
+            <svg viewBox="0 0 980 340" class="arch-svg" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                  <path d="M 0 1 L 10 5 L 0 9 z" fill="#f5d076" />
+                </marker>
+              </defs>
+              <rect x="20" y="35" width="160" height="80" rx="12" fill="#121624" stroke="#6366f1" />
+              <text x="100" y="65" text-anchor="middle" fill="#f8fafc" font-size="13" font-weight="700">Voice Edge Gateway</text>
+              <text x="100" y="85" text-anchor="middle" fill="#94a3b8" font-size="11">WebRTC / SIP / LiveKit</text>
+              <text x="100" y="101" text-anchor="middle" fill="#94a3b8" font-size="11">VAD + Barge-in</text>
+
+              <rect x="220" y="35" width="165" height="80" rx="12" fill="#121624" stroke="#10b981" />
+              <text x="302" y="65" text-anchor="middle" fill="#f8fafc" font-size="13" font-weight="700">Streaming STT &amp; TTS</text>
+              <text x="302" y="85" text-anchor="middle" fill="#94a3b8" font-size="11">Deepgram / Web Speech</text>
+              <text x="302" y="101" text-anchor="middle" fill="#94a3b8" font-size="11">25+ Languages + Neural TTS</text>
+
+              <rect x="430" y="25" width="210" height="100" rx="12" fill="#181c2e" stroke="#f5d076" stroke-width="2" />
+              <text x="535" y="53" text-anchor="middle" fill="#fef3c7" font-size="14" font-weight="700">Python Orchestrator</text>
+              <text x="535" y="73" text-anchor="middle" fill="#cbd5e1" font-size="11">LLM Brain (Gemini / GPT)</text>
+              <text x="535" y="90" text-anchor="middle" fill="#cbd5e1" font-size="11">BANT Scoring + Sentiment</text>
+              <text x="535" y="107" text-anchor="middle" fill="#cbd5e1" font-size="11">Tool Calling &amp; Guardrails</text>
+
+              <rect x="690" y="35" width="260" height="80" rx="12" fill="#121624" stroke="#f59e0b" />
+              <text x="820" y="63" text-anchor="middle" fill="#f8fafc" font-size="13" font-weight="700">CRM, Calendar &amp; Insights</text>
+              <text x="820" y="82" text-anchor="middle" fill="#94a3b8" font-size="11">SQLite / HubSpot / Salesforce</text>
+              <text x="820" y="99" text-anchor="middle" fill="#94a3b8" font-size="11">Kafka Outbox + Analytics</text>
+
+              <rect x="220" y="195" width="190" height="85" rx="12" fill="#121624" stroke="#8b5cf6" />
+              <text x="315" y="223" text-anchor="middle" fill="#f8fafc" font-size="13" font-weight="700">Contextual Memory</text>
+              <text x="315" y="242" text-anchor="middle" fill="#94a3b8" font-size="11">Redis Cluster (Session State)</text>
+              <text x="315" y="259" text-anchor="middle" fill="#94a3b8" font-size="11">PII Redaction (SOC 2 / GDPR)</text>
+
+              <rect x="450" y="195" width="210" height="85" rx="12" fill="#121624" stroke="#ec4899" />
+              <text x="555" y="223" text-anchor="middle" fill="#f8fafc" font-size="13" font-weight="700">Hybrid RAG Engine</text>
+              <text x="555" y="242" text-anchor="middle" fill="#94a3b8" font-size="11">BM25 + scikit-learn TF-IDF / Qdrant</text>
+              <text x="555" y="259" text-anchor="middle" fill="#94a3b8" font-size="11">Tenant-isolated Grounding</text>
+
+              <rect x="700" y="195" width="250" height="85" rx="12" fill="#121624" stroke="#14b8a6" />
+              <text x="825" y="223" text-anchor="middle" fill="#f8fafc" font-size="13" font-weight="700">100k Scale Infrastructure</text>
+              <text x="825" y="242" text-anchor="middle" fill="#94a3b8" font-size="11">Multi-region EKS + HPA Auto-scale</text>
+              <text x="825" y="259" text-anchor="middle" fill="#94a3b8" font-size="11">~3,000 Peak Concurrent Calls</text>
+
+              <line x1="180" y1="75" x2="215" y2="75" stroke="#f5d076" stroke-width="2" marker-end="url(#arrow)" />
+              <line x1="385" y1="75" x2="425" y2="75" stroke="#f5d076" stroke-width="2" marker-end="url(#arrow)" />
+              <line x1="640" y1="75" x2="685" y2="75" stroke="#f5d076" stroke-width="2" marker-end="url(#arrow)" />
+              <line x1="470" y1="125" x2="340" y2="190" stroke="#f5d076" stroke-width="2" marker-end="url(#arrow)" />
+              <line x1="545" y1="125" x2="555" y2="190" stroke="#f5d076" stroke-width="2" marker-end="url(#arrow)" />
+              <line x1="820" y1="115" x2="820" y2="190" stroke="#f5d076" stroke-width="2" marker-end="url(#arrow)" />
+            </svg>
+          </div>
+
+          <div class="arch-cards">
+            <div class="arch-card">
+              <h3>100,000-User Scalability</h3>
+              <p>100k registered sales seats equate to ~3,000 peak concurrent calls. Stateless Python orchestrator pods scale horizontally via Kubernetes HPA on WebSocket connection count, backed by Redis Cluster for sub-5ms session memory and tenant-sharded Qdrant/pgvector for RAG.</p>
+            </div>
+            <div class="arch-card">
+              <h3>Unit Economics &amp; Cost</h3>
+              <p>Voice AI COGS is ~$0.032/min ($0.004 STT + $0.002 Flash LLM + $0.015 TTS + $0.009 SIP/WebRTC). At 150 mins/user/mo, gross margin exceeds 84% on $299–$899 SaaS tiers.</p>
+            </div>
+            <div class="arch-card">
+              <h3>Security &amp; Compliance</h3>
+              <p>TLS 1.3 &amp; SRTP media encryption, AES-256 storage, automated regex/NER PII redaction prior to log persistence, RBAC tenant isolation, and SOC 2 Type II / GDPR / DPDP compliance.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Modal: Runtime AI Provider Config -->
+  <div id="configModal" class="modal hidden">
+    <div class="modal-card">
+      <div class="panel-header">
+        <h2>AI Brain Configuration</h2>
+        <button id="btnCloseConfig" class="btn btn-sm btn-ghost">Close</button>
+      </div>
+      <p class="hint">Runs 100% locally with zero API keys, or attach a Gemini / OpenAI key for live generative LLM replies.</p>
+      <form id="configForm" class="stack-form">
+        <label>Provider Mode
+          <select id="cfgProvider">
+            <option value="auto">Auto (Use Cloud Key if set, else Built-in Hybrid RAG)</option>
+            <option value="local">Python Hybrid RAG Engine (Offline/Deterministic)</option>
+            <option value="gemini">Google Gemini</option>
+            <option value="openai">OpenAI</option>
+          </select>
+        </label>
+        <label>Gemini API Key (optional) <input type="password" id="cfgGeminiKey" placeholder="AIza..." /></label>
+        <label>OpenAI API Key (optional) <input type="password" id="cfgOpenaiKey" placeholder="sk-..." /></label>
+        <button type="submit" class="btn btn-primary">Save Runtime Config</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>

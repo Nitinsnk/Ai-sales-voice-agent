@@ -1,0 +1,9 @@
+[project]
+name = "ai-sales-voice-agent"
+version = "1.0.0"
+description = "Autonomous AI Sales Voice Agent MVP in Python with real-time STT/TTS, scikit-learn TF-IDF + BM25 Hybrid RAG, BANT lead qualification, sentiment analysis, SQLite CRM booking, and call insights."
+requires-python = ">=3.11"
+dependencies = []
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
